@@ -41,6 +41,26 @@
 				placeholder="A twig template to be used at footer of PDF. Will be rendered by mPDF."
 				@update:value="saveFooterTemplate" />
 		</p>
+		<p v-if="addFooter">
+			<NcTextField
+				v-model="footerSignedBy"
+				:label="t('libresign', 'Footer: Signed by')"
+				:placeholder="t('libresign', 'Digitally signed by LibreSign.')"
+				@update:value="saveFooterSignedBy"
+			/>
+			<NcTextField
+				v-model="footerLinkToSite"
+				:label="t('libresign', 'Footer: Link to site')"
+				:placeholder="t('libresign', 'https://libresign.coop')"
+				@update:value="saveFooterLinkToSite"
+			/>
+			<NcTextField
+				v-model="footerValidateIn"
+				:label="t('libresign', 'Footer: Validate in text')"
+				:placeholder="t('libresign', 'Validate in %s.')"
+				@update:value="saveFooterValidateIn"
+			/>
+		</p>
 	</NcSettingsSection>
 </template>
 <script>
@@ -51,6 +71,7 @@ import { generateOcsUrl } from '@nextcloud/router'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcTextArea from '@nextcloud/vue/components/NcTextArea'
+import NcTextField from '@nextcloud/vue/components/NcTextField'
 
 export default {
 	name: 'Validation',
@@ -58,6 +79,7 @@ export default {
 		NcSettingsSection,
 		NcCheckboxRadioSwitch,
 		NcTextArea,
+		NcTextField,
 	},
 	data() {
 		return {
@@ -69,6 +91,9 @@ export default {
 			writeQrcodeOnFooter: true,
 			isExtraSettingsEnabled: false,
 			footerTemplate: '',
+			footerSignedBy: '',
+			footerLinkToSite: '',
+			footerValidateIn: '',
 		}
 	},
 	created() {
@@ -84,6 +109,9 @@ export default {
 			this.getWriteQrcodeOnFooter()
 			this.getValidationUrlData()
 			this.getExtraSettingsEnabled()
+			this.getFooterSignedBy()
+			this.getFooterLinkToSite()
+			this.getFooterValidateIn()
 		},
 		async getExtraSettingsEnabled() {
 			const isExtraSettingsEnabled = await axios.get(generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/extra_settings'))
@@ -125,6 +153,24 @@ export default {
 				))
 			this.footerTemplate = response.data.ocs.data.data
 		},
+		async getFooterSignedBy() {
+			const response = await axios.get(
+				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/footer_signed_by'),
+			)
+			this.footerSignedBy = response?.data?.ocs?.data?.data || ''
+		},
+		async getFooterLinkToSite() {
+			const response = await axios.get(
+				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/footer_link_to_site'),
+			)
+			this.footerLinkToSite = response?.data?.ocs?.data?.data || ''
+		},
+		async getFooterValidateIn() {
+			const response = await axios.get(
+				generateOcsUrl('/apps/provisioning_api/api/v1/config/apps/libresign/footer_validate_in'),
+			)
+			this.footerValidateIn = response?.data?.ocs?.data?.data || ''
+		},
 		saveValidationiUrl() {
 			OCP.AppConfig.setValue('libresign', 'validation_site', this.$refs.urlInput.value.trim())
 		},
@@ -147,6 +193,15 @@ export default {
 		},
 		saveFooterTemplate() {
 			OCP.AppConfig.setValue('libresign', 'footer_template', this.footerTemplate)
+		},
+		saveFooterSignedBy() {
+			OCP.AppConfig.setValue('libresign', 'footer_signed_by', this.footerSignedBy)
+		},
+		saveFooterLinkToSite() {
+			OCP.AppConfig.setValue('libresign', 'footer_link_to_site', this.footerLinkToSite)
+		},
+		saveFooterValidateIn() {
+			OCP.AppConfig.setValue('libresign', 'footer_validate_in', this.footerValidateIn)
 		},
 	},
 }
